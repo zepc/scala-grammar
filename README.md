@@ -1,2 +1,2 @@
-# scala-grammer
-Scala Grammer
+# scala-grammar
+learn about scala

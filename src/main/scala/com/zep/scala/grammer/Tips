@@ -1,0 +1,129 @@
+1. Scala推荐使用val，因为val线程是安全的，效率更高。能使用val，就不用var
+    val编译之后，相当于 private final xxx xxx
+2. 当for推导式仅包含单一表达式时使用圆括号，当包含多个表达式时使用大括号。 for{i <- 1 to 3
+                                                                               j = i * 2}
+3. 使用循环守卫控制步长，for(i <- 1 to 10 if i % 3 == 0)
+4. while是Unit类型的，当用语句来计算并返回结果时候，就需要使用外部变量，所以不推荐使用，而推荐使用for循环
+5. 使用函数来替代continue和break
+
+    使用函数直接中断程序
+    def breakable(op: => Unit){
+        try{
+            op
+        }catch{
+            case ex:BreakControl => if (ex ne breakException) throw ex
+        }
+    }
+
+    循环守卫：实现break效果
+    var flag = true
+    for (i <- 10 to max if flag == true){
+        if (sum > 20){
+            flag = false
+        }
+    }
+
+    // 使用循环守卫使用continue
+    for (i <- 1 to 10 if (i != 4 && i != 5)){
+        println("i =" + i)
+    }
+
+    // 使用 if-else实现continue
+    for ( i <- 1 to 10 ){
+        if (i != 4 && i != 5){
+            print("i =" + 1)
+        }
+    }
+
+
+
+ 6. 惰性函数，当函数返回值被lazy修饰的时候，该函数为惰性函数。
+        lazy 不能修饰 var
+
+        lazy var res = sum(1, 2)
+
+ 7. 异常，越具体的异常，越应该写在前面
+
+ 8. 属性必须进行初始化，如果不进行初始化或者使用null进行初始化，那么必须指定类型
+ 9. 辅助构造器必须在第一行使用this调用主构造器
+
+ 10. 如果主构造器的形参未用任何修饰符修饰，这个参数就是局部变量
+     如果使用val，该参数作为类的私有的只读属性 getter
+     如果使用var，该参数作为类的成员属性，getter和setter
+
+ 11. 需要import的时候，才在代码的上面导入，提高效率
+
+ 12. classOf[String] -> String.class
+     obj.isInstanceOf[T] 判断obj是否是T类型
+     obj.asInstanceOf[T] 将obj强转为T类型
+
+     用途：判断传入的对象类型，强转为相应的子类
+
+13. 只有主构造器才能调用超类的主构造器
+    class Person(pname: String)
+    class Student(stdname: String) extends Person(stdname)
+
+14. def只能重写另一个def
+    val只能重写另一个val属性 或者 不带参数的def
+
+15. 抽象类不一定要包含抽象方法
+    抽象方法不能有抽象主体，不能用abstract声明
+
+16. 伴生对象的apply方法可以用来创建对象
+    // 其他对象中
+    val cat = Cat(age)  // 默认调用apply方法
+
+    def apply(age: Int) : Cat = new Cat(age)
+
+17. 动态混入Trait，在不影响原有的继承关系的基础上，给指定的类扩展功能
+    val oracleDB = new OracleDB with Operate{
+        override def insert(): Unit = {
+            println("insert")
+        }
+    }
+
+18. 如果混入了多个trait，那么trait声明顺序从左到右，方法的执行顺序从右到左
+    Trait中如果调用super，并不是表示调用父trait的的方法，而是向左边继续查找trait，如果找不到，才会去父trait查找
+
+19. self-type特质，主要是为了解决特质的循环依赖问题，同时可以确保特质在不扩展某个类的情况下，
+        依然可以做到限制混入特质的类的类型
+
+20. 类型投影：在方法声明上，如果使用 外部类#内部类 的方式，表示忽略内部类的对象关系
+             忽略对象的创建方式，只考虑类型
+
+21. 隐式转换函数是以implicit声明的带有单个参数的函数。
+    这种函数会自动应用，将值从一种类型转换为另一种类型
+
+22. 隐式转换与函数名称无关，只与函数签名有关
+    隐式函数可以有多个，但是需要保证在当前环境下，只有一个隐式函数能被识别
+
+23. 隐式变量
+    // 可以为表达式
+    implicit val s = "scot"
+
+    def hello(implicit name: String) = {....}
+
+24. 隐式类
+    1 所带的构造参数有且只能有一个
+    2 隐式类必须被定义在类，伴生对象或者包对象中
+    3 隐式类不能是case class
+    4 作用域内不能有与之相同名称标识符
+
+25. 隐式的转换时机
+   1 当方法中的参数类型与目标类型不一致时
+   2 当对象调用所在类中不存在方法或成员时，编译器会自动将对象进行隐式转换（根据类型）
+
+26. IndexSeq 和 LinearSeq 的区别[IndexSeq 是通过索引来查找和定位，因此速度快，比如 String 就是一个索引
+    集合，通过索引即可定位] [LineaSeq 是线型的，即有头尾的概念，这种数据结构一般是通过遍历来查找，
+    它的价值在于应用到一些
+
+27. 不可变的Map是有序的，可变的Map是无序的
+    Map中的元素就是Tuple2
+
+28. 对于map，如果key存在使用map(key)，速度块
+    如果key不能存在，先判断map.contains(key)，然后再使用map(key)
+    如果只是想简单的返回一个值，那么使用getOrElse()
+
+29. 密封类：如果想让case类的所有子类都必须在声明该类的相同源文件中定义，可以
+        将样例类的通用超类声明为sealed，这个超类称之为密封类
+    密封类就是不能在其他文件中定义/使用类
